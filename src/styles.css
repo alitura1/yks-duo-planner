@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Root color variables (light) */
+:root{
+  --bg: #fafafa;
+  --fg: #111111;
+  --panel: #ffffff;
+  --muted: #666666;
+  --border: #eaeaea;
+  --chip: #f2f2f2;
+}
+
+/* Dark mode override */
+.dark{
+  --bg: #0f172a;
+  --fg: #e5e7eb;
+  --panel: #0b1222;
+  --muted: #a3a3a3;
+  --border: #1f2937;
+  --chip: #111827;
+}
+
+/* Panel basics */
+.panel{
+  @apply rounded-2xl shadow-soft border transition-colors duration-150 overflow-hidden;
+  border-color: var(--border);
+  background: var(--panel);
+}
+.card{
+  @apply rounded-2xl shadow-soft border p-4;
+  border-color: var(--border);
+  background: var(--panel);
+}
+.input, .select, .textarea{
+  @apply w-full rounded-xl border px-3 py-2 outline-none;
+  border-color: var(--border);
+  background: var(--panel);
+  color: var(--fg);
+}
+.btn{
+  @apply rounded-xl border px-4 py-2 font-medium transition-transform;
+  border-color: var(--border);
+  background: var(--fg);
+  color: var(--bg);
+}
+.btn:hover{ transform: translateY(-1px) }
+.btn.subtle{
+  background: transparent; color: var(--fg);
+}
+.chip{ @apply text-xs px-2 py-1 rounded-full; background: var(--chip) }
+.hint{ @apply text-xs opacity-70 }
+
+/* Sub-themes (affect headers/cards subtly) */
+.theme-macera .panelHeader{ background: linear-gradient(90deg,#0ea5e9,#22d3ee); color:white }
+.theme-cicek  .panelHeader{ background: linear-gradient(90deg,#ec4899,#f472b6); color:white }
+.theme-gece   .panelHeader{ background: linear-gradient(90deg,#111827,#0f172a); color:white }
+.theme-orman  .panelHeader{ background: linear-gradient(90deg,#22c55e,#86efac); color:#0b3d1b }
+.theme-okyanus.panel .panelHeader{ background: linear-gradient(90deg,#0284c7,#38bdf8); color:white }
+.theme-retro  .panelHeader{ background: linear-gradient(90deg,#f59e0b,#f97316); color:#4a2600 }
+.theme-minimal .panelHeader{ background: transparent; color: var(--fg); }
+.theme-galaksi .panelHeader{ background: linear-gradient(90deg,#8b5cf6,#06b6d4); color:white }
+
+.task{
+  @apply flex items-center gap-2 border rounded-xl px-3 py-2 bg-[var(--panel)] select-none;
+  border-color: var(--border);
+}
+.task.done{ @apply opacity-60 line-through }
+.task .handle{ cursor: grab }
+.presence-dot{ @apply inline-block rounded-full w-2 h-2 mr-2 }
+.presence-on{ background:#22c55e } .presence-off{ background:#888 }  @layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}  @layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

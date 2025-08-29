@@ -1,0 +1,233 @@
+/* === Root color variables (light mode) === */
+:root {
+  --bg: #fafafa;
+  --fg: #111111;
+  --panel: #ffffff;
+  --muted: #666666;
+  --border: #eaeaea;
+  --chip: #f2f2f2;
+
+  /* shadcn uyumlu */
+  --background: var(--bg);
+  --foreground: var(--fg);
+  --card: var(--panel);
+  --card-foreground: var(--fg);
+  --popover: var(--panel);
+  --popover-foreground: var(--fg);
+  --primary: var(--fg);
+  --primary-foreground: var(--bg);
+  --secondary: var(--chip);
+  --secondary-foreground: var(--fg);
+  --muted-foreground: var(--muted);
+  --accent: var(--chip);
+  --accent-foreground: var(--fg);
+  --border: var(--border);
+  --input: var(--border);
+  --ring: var(--fg);
+}
+
+/* === Dark mode override === */
+.dark {
+  --bg: #0f172a;
+  --fg: #e5e7eb;
+  --panel: #0b1222;
+  --muted: #a3a3a3;
+  --border: #1f2937;
+  --chip: #111827;
+
+  /* shadcn uyumlu */
+  --background: var(--bg);
+  --foreground: var(--fg);
+  --card: var(--panel);
+  --card-foreground: var(--fg);
+  --popover: var(--panel);
+  --popover-foreground: var(--fg);
+  --primary: var(--fg);
+  --primary-foreground: var(--bg);
+  --secondary: var(--chip);
+  --secondary-foreground: var(--fg);
+  --muted-foreground: var(--muted);
+  --accent: var(--chip);
+  --accent-foreground: var(--fg);
+  --border: var(--border);
+  --input: var(--border);
+  --ring: var(--fg);
+}
+
+/* === Sub-themes → renk + arkaplan === */
+body.theme-macera {
+  --primary: #0ea5e9;
+  --secondary: #22d3ee;
+  background: url('/themes/minecraft-adventure.jpg') no-repeat center/cover;
+}
+body.theme-cicek {
+  --primary: #ec4899;
+  --secondary: #f472b6;
+  background: url('/themes/minecraft-flowers.jpg') no-repeat center/cover;
+}
+body.theme-gece {
+  --primary: #111827;
+  --secondary: #0f172a;
+  background: url('/themes/minecraft-night.jpg') no-repeat center/cover;
+}
+body.theme-orman {
+  --primary: #22c55e;
+  --secondary: #86efac;
+  background: url('/themes/minecraft-forest.jpg') no-repeat center/cover;
+}
+body.theme-okyanus {
+  --primary: #0284c7;
+  --secondary: #38bdf8;
+  background: url('/themes/minecraft-ocean.jpg') no-repeat center/cover;
+}
+body.theme-retro {
+  --primary: #f59e0b;
+  --secondary: #f97316;
+  background: url('/themes/retro-pixels.jpg') no-repeat center/cover;
+}
+body.theme-minimal {
+  --primary: var(--fg);
+  --secondary: var(--chip);
+  background: var(--bg);
+}
+body.theme-galaksi {
+  --primary: #8b5cf6;
+  --secondary: #06b6d4;
+  background: url('/themes/galaxy.jpg') no-repeat center/cover;
+}
+
+/* Body full height fix */
+body.theme-macera,
+body.theme-cicek,
+body.theme-gece,
+body.theme-orman,
+body.theme-okyanus,
+body.theme-retro,
+body.theme-minimal,
+body.theme-galaksi {
+  min-height: 100vh;
+}
+
+/* === Panel basics (glass effect) === */
+.panel {
+  @apply rounded-2xl shadow-xl border relative overflow-hidden transition-colors duration-200;
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+.dark .panel {
+  background: rgba(15, 23, 42, 0.6);
+}
+
+/* === Card === */
+.card {
+  @apply rounded-2xl shadow-md border p-4;
+  border-color: var(--border);
+  background: var(--panel);
+}
+
+/* === Inputs === */
+.input,
+.select,
+.textarea {
+  @apply w-full rounded-xl border px-3 py-2 outline-none transition-colors;
+  border-color: var(--border);
+  background: var(--panel);
+  color: var(--fg);
+}
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+/* === Buttons === */
+.btn {
+  @apply rounded-xl border px-4 py-2 font-medium transition-transform;
+  border-color: var(--border);
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.btn:hover {
+  transform: translateY(-1px);
+}
+.btn.subtle {
+  background: transparent;
+  color: var(--fg);
+}
+
+/* === Chips & hints === */
+.chip {
+  @apply text-xs px-2 py-1 rounded-full;
+  background: var(--chip);
+}
+.hint {
+  @apply text-xs opacity-70;
+}
+
+/* === Panel headers → gradient === */
+.theme-macera .panelHeader {
+  background: linear-gradient(90deg, #0ea5e9, #22d3ee);
+  color: white;
+}
+.theme-cicek .panelHeader {
+  background: linear-gradient(90deg, #ec4899, #f472b6);
+  color: white;
+}
+.theme-gece .panelHeader {
+  background: linear-gradient(90deg, #111827, #0f172a);
+  color: white;
+}
+.theme-orman .panelHeader {
+  background: linear-gradient(90deg, #22c55e, #86efac);
+  color: #0b3d1b;
+}
+.theme-okyanus .panelHeader {
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+  color: white;
+}
+.theme-retro .panelHeader {
+  background: linear-gradient(90deg, #f59e0b, #f97316);
+  color: #4a2600;
+}
+.theme-minimal .panelHeader {
+  background: transparent;
+  color: var(--fg);
+}
+.theme-galaksi .panelHeader {
+  background: linear-gradient(90deg, #8b5cf6, #06b6d4);
+  color: white;
+}
+
+/* === Tasks & presence === */
+.task {
+  @apply flex items-center gap-2 border rounded-xl px-3 py-2 select-none transition-colors;
+  border-color: var(--border);
+  background: var(--panel);
+}
+.task.done {
+  @apply opacity-60 line-through;
+}
+.task .handle {
+  cursor: grab;
+}
+.presence-dot {
+  @apply inline-block rounded-full w-2 h-2 mr-2;
+}
+.presence-on {
+  background: #22c55e;
+}
+.presence-off {
+  background: #888;
+}
+
+/* === Base reset === */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground transition-colors duration-300;
+  }
+}
