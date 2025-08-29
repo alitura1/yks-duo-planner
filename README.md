@@ -1,4 +1,4 @@
-# YKS İkili Çalışma — Deploy Hazır (Vite + React + Tailwind + Firebase)
+# YKS Çift Çalışma — Deploy Hazır (Vite + React + Tailwind + Firebase)
 
 ## 🚀 Kurulum (Lokal)
 ```bash
