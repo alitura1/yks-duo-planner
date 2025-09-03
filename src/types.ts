@@ -1,5 +1,5 @@
 export type Role = 'admin' | 'adminpp'
-export type SubTheme = 'macera'|'cicek'|'gece'|'orman'|'okyanus'|'retro'|'minimal'|'galaksi'
+export type SubTheme = typeof themes[number]['id'];
 
 export interface UserProfile {
   id: string

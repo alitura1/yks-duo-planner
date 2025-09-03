@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-export const useTheme = (initialTheme = "macera") => {
+export const useTheme = (initialTheme = "cicek") => {
   const [theme, setTheme] = useState<string>(() => {
     return localStorage.getItem("theme") || initialTheme
   })

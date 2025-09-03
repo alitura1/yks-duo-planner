@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000">
+<defs>
+  <linearGradient id="r" x1="0" x2="1">
+    <stop offset="0" stop-color="#550000"/>
+    <stop offset="1" stop-color="#1a0000"/>
+  </linearGradient>
+  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+    <feMerge>
+      <feMergeNode in="coloredBlur"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+</defs>
+<rect width="100%" height="100%" fill="url(#r)"/>
+<g stroke="#ff3b30" stroke-width="10" filter="url(#glow)">
+  <polyline points="50,150 200,250 260,220 400,340 520,290 700,420" fill="none"/>
+  <polyline points="900,650 1020,580 1100,620 1260,530 1400,560 1520,470" fill="none"/>
+</g>
+<g stroke="#ffd60a" stroke-width="6" opacity="0.8">
+  <polyline points="80,230 220,300 300,260 430,360 540,330 720,450" fill="none"/>
+  <polyline points="920,690 1040,600 1120,650 1280,560 1420,600 1550,500" fill="none"/>
+</g>
+</svg>

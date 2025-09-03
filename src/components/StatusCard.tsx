@@ -1,3 +1,4 @@
+import { themes } from "../themes"
 import React, { useEffect, useState } from 'react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
@@ -31,7 +32,7 @@ export const StatusCard: React.FC<{ targetUser: any, canEdit: boolean }> = ({ ta
   }
 
   return (
-    <div className="card">
+    <div className="card bg-[var(--panel)]">
       <div className="flex items-center justify-between">
         <strong>Durum</strong>
         <button className="btn text-sm px-2 py-1" onClick={() => setOpen(!open)}>
@@ -42,7 +43,7 @@ export const StatusCard: React.FC<{ targetUser: any, canEdit: boolean }> = ({ ta
       {!open && (
         <div className="mt-2">
           {note ? (
-            <p className="text-sm text-gray-200 whitespace-pre-wrap">{note}</p>
+            <p className="text-sm text-[color:rgba(255,255,255,0.8)] whitespace-pre-wrap">{note}</p>
           ) : (
             <p className="text-sm text-gray-500 italic">Henüz bir durum mesajı yok.</p>
           )}

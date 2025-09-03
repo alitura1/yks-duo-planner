@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Sun, Moon, Settings } from "lucide-react"
+import { Sun, Moon, Settings, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -11,6 +11,7 @@ import {
 import { useUser } from "../contexts/UserContext"
 import { doc, updateDoc } from "firebase/firestore"
 import { db } from "../firebase"
+import { themes } from "../themes"
 
 interface TopbarProps {
   onOpenSettings: () => void
@@ -18,16 +19,6 @@ interface TopbarProps {
   setSelectedDay: (day: string) => void
 }
 
-const themes = [
-  { value: "macera", label: "Macera" },
-  { value: "cicek", label: "Çiçek" },
-  { value: "gece", label: "Gece" },
-  { value: "orman", label: "Orman" },
-  { value: "okyanus", label: "Okyanus" },
-  { value: "retro", label: "Retro" },
-  { value: "minimal", label: "Minimal" },
-  { value: "galaksi", label: "Galaksi" },
-]
 
 const days = [
   { key: "Pazartesi", label: "Pzt" },
@@ -42,7 +33,7 @@ const days = [
 const dayKeys = days.map((d) => d.key)
 
 export function TopBar({ onOpenSettings, selectedDay, setSelectedDay }: TopbarProps) {
-  const { user, profile } = useUser()
+  const { user, profile, signOutNow } = useUser()
   const [theme, setTheme] = useState(profile?.theme || "macera")
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem("darkMode")
@@ -103,21 +94,25 @@ export function TopBar({ onOpenSettings, selectedDay, setSelectedDay }: TopbarPr
   }, [profile?.theme])
 
   return (
-    <div className="w-full flex flex-col border-b bg-[var(--panel)]">
+    <div className="w-full flex flex-col border-b bg-[var(--panel)] sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-[var(--panel)]/80">
       {/* Üst Satır */}
       <div className="flex items-center justify-between px-4 py-3">
         <h1 className="text-lg font-semibold" style={{ color: "var(--fg)" }}>
-          YKS Çift Çalışma
+          YKS Duo
         </h1>
 
         <div className="flex items-center gap-3">
+          {/* Çıkış */}
+          <Button variant="secondary" onClick={signOutNow} title="Hesaptan çık">
+            <LogOut className="w-4 h-4 mr-2" /> Çıkış
+          </Button>
           {/* Tema seçici */}
           <Select value={theme} onValueChange={handleThemeChange}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Tema seç" />
             </SelectTrigger>
             <SelectContent>
-              {themes.map((t) => (
+              {themes.map(t => (
                 <SelectItem key={t.value} value={t.value}>
                   {t.label}
                 </SelectItem>
@@ -145,7 +140,7 @@ export function TopBar({ onOpenSettings, selectedDay, setSelectedDay }: TopbarPr
             onClick={() => setSelectedDay(d.key)}
             className={`px-3 py-1 rounded-md text-sm transition ${
               selectedDay === d.key
-                ? "bg-blue-500 text-white"
+                ? "bg-blue-500 text-[var(--text)]"
                 : "bg-[var(--bg)] text-[var(--fg)] hover:bg-[var(--hover)]"
             }`}
           >

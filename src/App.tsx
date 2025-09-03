@@ -8,9 +8,10 @@ import { UserPanel } from "./components/UserPanel"
 import { todayKey } from "./utils"
 import type { UserProfile } from "./types"
 import { useHeartbeat } from "./hooks/useHeartbeat"
+import ThemeEffectSwitcher from "./themes/ThemeEffectSwitcher"
 
 const Auth: React.FC = () => {
-  const { signInEmail } = useUser()
+  const { signInEmail, profile } = useUser() // ✅ profile buradan alındı
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -27,6 +28,8 @@ const Auth: React.FC = () => {
 
   return (
     <div className="min-h-screen grid place-items-center p-6">
+      {/* ✅ profile artık tanımlı, hata kalkar */}
+      <ThemeEffectSwitcher themeKey={profile?.theme || "gothic"} />
       <form className="card w-full max-w-sm" onSubmit={submit}>
         <h2 className="text-lg font-bold">Giriş</h2>
         <div className="mt-2">
@@ -88,6 +91,16 @@ export const App: React.FC = () => {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() === "n") {
+        // Ignore when typing in inputs/textareas/selects or with modifiers
+        const target = e.target as HTMLElement | null
+        const tag = target?.tagName?.toLowerCase()
+        const isTyping =
+          tag === "input" ||
+          tag === "textarea" ||
+          tag === "select" ||
+          (target?.getAttribute &&
+            target.getAttribute("contenteditable") === "true")
+        if (isTyping || e.metaKey || e.ctrlKey || e.altKey) return
         const el =
           document.querySelector<HTMLInputElement>("#newTask-left") ||
           document.querySelector<HTMLInputElement>("#newTask-right")
@@ -103,6 +116,9 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* ✅ ana uygulamada da tema aktif */}
+      <ThemeEffectSwitcher themeKey={profile?.theme || "gothic"} />
+
       <TopBar
         selectedDay={selectedDay}
         setSelectedDay={setSelectedDay}
@@ -119,7 +135,7 @@ export const App: React.FC = () => {
             targetUser={leftUser}
             canEdit={isAdminPP || profile?.id === leftUser?.id}
             profile={profile}
-            side="left"   // ✅ eklendi
+            side="left"
           />
         </div>
         <div id="right">
@@ -129,7 +145,7 @@ export const App: React.FC = () => {
             targetUser={rightUser}
             canEdit={isAdminPP || profile?.id === rightUser?.id}
             profile={profile}
-            side="right"   // ✅ eklendi
+            side="right"
           />
         </div>
       </div>

@@ -1,9 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+import { getTheme, themes } from "../themes";
 import { usePresence } from "../hooks/usePresence";
 import { useMinuteTicker } from "../hooks/useMinuteTicker";
 import { StatusCard } from "./StatusCard";
+import { PhotoHistoryModal } from "./PhotoHistoryModal";
 import { TaskColumn } from "./TaskColumn";
-import { onTasks, createTask, deleteTask, setTaskOrder, toggleTask } from "../api/tasks";
+import {
+  onTasks,
+  createTask,
+  deleteTask,
+  setTaskOrder,
+  toggleTask,
+} from "../api/tasks";
 import type { Task, UserProfile } from "../types";
 import { useUser } from "../contexts/UserContext";
 
@@ -32,6 +40,8 @@ export const UserPanel: React.FC<{
   useMinuteTicker();
   const { theme } = useUser(); // kendi kullanıcı teması (sol panelde kullanılacak)
 
+  const [photoOpen, setPhotoOpen] = useState(false);
+
   const [items, setItems] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState("");
 
@@ -57,20 +67,44 @@ export const UserPanel: React.FC<{
   const appliedTheme =
     side === "right"
       ? targetUser?.theme || "minimal" // sağ panel → karşı tarafın teması
-      : theme || "minimal";            // sol panel → kendi seçtiğimiz tema
+      : theme || "minimal"; // sol panel → kendi seçtiğimiz tema
+
+  const themeMap = useMemo(
+    () => Object.fromEntries(themes.map((t) => [t.value, t])),
+    []
+  );
+
+  const themeDef = getTheme(appliedTheme);
 
   return (
-    <div className={`panel theme-${appliedTheme}`}>
+    <div
+      className="panel"
+      data-theme={appliedTheme}
+      style={{
+        ["--theme-bg" as any]: themeDef.colors.bg,
+        ["--theme-panel" as any]: themeDef.colors.panel,
+        ["--theme-header" as any]: themeDef.colors.header,
+        ["--theme-text" as any]: themeDef.colors.text,
+        ["--theme-accent" as any]: themeDef.colors.accent,
+        ["--theme-border" as any]: themeDef.colors.border,
+        ["--theme-input" as any]: themeDef.colors.input,
+        backgroundImage: themeDef.backgroundImage,
+      }}
+    >
       {/* HEADER */}
       <div
         className="panelHeader relative flex items-center gap-3 px-4 py-3 rounded-t-xl overflow-hidden"
         style={{
-          backgroundImage: targetUser?.statusGifUrl ? `url(${targetUser.statusGifUrl})` : undefined,
+          backgroundImage: targetUser?.statusGifUrl
+            ? `url(${targetUser.statusGifUrl})`
+            : undefined,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       >
-        {targetUser?.statusGifUrl && <div className="absolute inset-0 bg-black/50" />}
+        {targetUser?.statusGifUrl && (
+          <div className="absolute inset-0 bg-[var(--bg)]/50" />
+        )}
         <div className="relative flex items-center gap-3 z-10">
           <img
             src={
@@ -84,26 +118,40 @@ export const UserPanel: React.FC<{
             title={targetUser?.displayName || label}
             className="w-14 h-14 rounded-full object-cover border-2 border-white"
           />
-          <div className="flex flex-col text-white">
+          <div className="flex flex-col text-[var(--text)]">
             <div className="flex items-center gap-2 font-semibold">
-              <span className={`presence-dot ${pres.online ? "presence-on" : "presence-off"}`} />
+              <span
+                className={`presence-dot ${
+                  pres.online ? "presence-on" : "presence-off"
+                }`}
+              />
               {targetUser?.displayName || label}
             </div>
-            <span className="text-xs text-gray-200">
-              {pres.online ? "Çevrimiçi" : `Son görülme: ${formatLastSeen(pres.lastSeen)}`}
+            <span className="text-xs text-[color:rgba(255,255,255,0.8)]">
+              {pres.online
+                ? "Çevrimiçi"
+                : `Son görülme: ${formatLastSeen(pres.lastSeen)}`}
             </span>
           </div>
         </div>
-        <div className="ml-auto relative z-10 chip bg-white/20 text-white">
+        <div className="ml-auto relative z-10 chip bg-white/20 text-[var(--text)]">
           Tema: {appliedTheme}
         </div>
+        {targetUser?.photoHistory?.length ? (
+          <button
+            className="ml-2 z-10 btn"
+            onClick={() => setPhotoOpen(true)}
+          >
+            Genişlet
+          </button>
+        ) : null}
       </div>
 
       {/* CONTENT */}
       <div className="p-4 flex flex-col gap-4">
         <StatusCard targetUser={targetUser} canEdit={canEdit} />
 
-        <div className="card">
+        <div className="card bg-[var(--panel)]">
           <div className="flex items-center justify-between">
             <div>
               <strong>{selectedDay}</strong>{" "}
@@ -118,7 +166,9 @@ export const UserPanel: React.FC<{
             <input
               id={`newTask-${side}`}
               className="input"
-              placeholder={`${targetUser?.displayName || "Kullanıcı"} için görev…`}
+              placeholder={`${
+                targetUser?.displayName || "Kullanıcı"
+              } için görev…`}
               value={newTask}
               onChange={(e) => setNewTask(e.target.value)}
               disabled={!canEdit}
@@ -138,16 +188,25 @@ export const UserPanel: React.FC<{
               onToggle={(t) => toggleTask(t.id, !t.done)}
               onReorder={async (ordered) => {
                 for (let i = 0; i < ordered.length; i++) {
-                  await setTaskOrder(ordered[i].id, Date.now() + i);
+                  await setTaskOrder(ordered[i].id, i);
                 }
               }}
-              onDelete={(t) => {
-                if (confirm("Görevi silmek istiyor musun?")) deleteTask(t.id);
+              onDelete={(t, skipConfirm = false) => {
+                if (!skipConfirm && !confirm("Görevi silmek istiyor musun?"))
+                  return;
+                deleteTask(t.id);
               }}
             />
           </div>
         </div>
       </div>
+
+      {photoOpen && targetUser?.photoHistory ? (
+        <PhotoHistoryModal
+          photos={targetUser.photoHistory}
+          onClose={() => setPhotoOpen(false)}
+        />
+      ) : null}
     </div>
   );
 };

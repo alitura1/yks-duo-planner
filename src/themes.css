@@ -1,233 +1,162 @@
-/* === Root color variables (light mode) === */
+/* === Duo Panel Themes (scoped per panel) ===
+   Usage: <div class="panel" data-theme="cicek"> ... </div>
+   Themes: cicek | mcqueen | gotik | minimal
+*/
 :root {
-  --bg: #fafafa;
-  --fg: #111111;
-  --panel: #ffffff;
-  --muted: #666666;
-  --border: #eaeaea;
-  --chip: #f2f2f2;
-
-  /* shadcn uyumlu */
-  --background: var(--bg);
-  --foreground: var(--fg);
-  --card: var(--panel);
-  --card-foreground: var(--fg);
-  --popover: var(--panel);
-  --popover-foreground: var(--fg);
-  --primary: var(--fg);
-  --primary-foreground: var(--bg);
-  --secondary: var(--chip);
-  --secondary-foreground: var(--fg);
-  --muted-foreground: var(--muted);
-  --accent: var(--chip);
-  --accent-foreground: var(--fg);
-  --border: var(--border);
-  --input: var(--border);
-  --ring: var(--fg);
+  --panel-bg: #111827;
+  --panel-fg: #f8fafc;
+  --panel-card: rgba(255,255,255,0.06);
+  --panel-border: rgba(255,255,255,0.1);
+  --accent: #60a5fa;
+  --accent-2: #34d399;
 }
 
-/* === Dark mode override === */
-.dark {
-  --bg: #0f172a;
-  --fg: #e5e7eb;
-  --panel: #0b1222;
-  --muted: #a3a3a3;
-  --border: #1f2937;
-  --chip: #111827;
-
-  /* shadcn uyumlu */
-  --background: var(--bg);
-  --foreground: var(--fg);
-  --card: var(--panel);
-  --card-foreground: var(--fg);
-  --popover: var(--panel);
-  --popover-foreground: var(--fg);
-  --primary: var(--fg);
-  --primary-foreground: var(--bg);
-  --secondary: var(--chip);
-  --secondary-foreground: var(--fg);
-  --muted-foreground: var(--muted);
-  --accent: var(--chip);
-  --accent-foreground: var(--fg);
-  --border: var(--border);
-  --input: var(--border);
-  --ring: var(--fg);
-}
-
-/* === Sub-themes → renk + arkaplan === */
-body.theme-macera {
-  --primary: #0ea5e9;
-  --secondary: #22d3ee;
-  background: url('/themes/minecraft-adventure.jpg') no-repeat center/cover;
-}
-body.theme-cicek {
-  --primary: #ec4899;
-  --secondary: #f472b6;
-  background: url('/themes/minecraft-flowers.jpg') no-repeat center/cover;
-}
-body.theme-gece {
-  --primary: #111827;
-  --secondary: #0f172a;
-  background: url('/themes/minecraft-night.jpg') no-repeat center/cover;
-}
-body.theme-orman {
-  --primary: #22c55e;
-  --secondary: #86efac;
-  background: url('/themes/minecraft-forest.jpg') no-repeat center/cover;
-}
-body.theme-okyanus {
-  --primary: #0284c7;
-  --secondary: #38bdf8;
-  background: url('/themes/minecraft-ocean.jpg') no-repeat center/cover;
-}
-body.theme-retro {
-  --primary: #f59e0b;
-  --secondary: #f97316;
-  background: url('/themes/retro-pixels.jpg') no-repeat center/cover;
-}
-body.theme-minimal {
-  --primary: var(--fg);
-  --secondary: var(--chip);
-  background: var(--bg);
-}
-body.theme-galaksi {
-  --primary: #8b5cf6;
-  --secondary: #06b6d4;
-  background: url('/themes/galaxy.jpg') no-repeat center/cover;
-}
-
-/* Body full height fix */
-body.theme-macera,
-body.theme-cicek,
-body.theme-gece,
-body.theme-orman,
-body.theme-okyanus,
-body.theme-retro,
-body.theme-minimal,
-body.theme-galaksi {
-  min-height: 100vh;
-}
-
-/* === Panel basics (glass effect) === */
+/* Base panel box */
 .panel {
-  @apply rounded-2xl shadow-xl border relative overflow-hidden transition-colors duration-200;
-  border-color: var(--border);
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(18px) saturate(140%);
-}
-.dark .panel {
-  background: rgba(15, 23, 42, 0.6);
+  /* Map old variable names used in styles.css to theme-scoped ones */
+  --bg: var(--panel-bg);
+  --fg: var(--panel-fg);
+  --panel: var(--panel-card);
+  --border: var(--panel-border);
+
+  position: relative;
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+  color: var(--panel-fg);
+  min-height: 100%;
 }
 
-/* === Card === */
-.card {
-  @apply rounded-2xl shadow-md border p-4;
-  border-color: var(--border);
-  background: var(--panel);
+.panel .card {
+  background: var(--panel-card);
+  border: 1px solid var(--panel-border);
+  border-radius: 0.75rem;
 }
 
-/* === Inputs === */
-.input,
-.select,
-.textarea {
-  @apply w-full rounded-xl border px-3 py-2 outline-none transition-colors;
-  border-color: var(--border);
-  background: var(--panel);
-  color: var(--fg);
+.panel .btn-accent {
+  background: var(--accent);
+  color: #0b0f19;
 }
-.input:focus,
-.select:focus,
-.textarea:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary);
+.panel .btn-accent-2 {
+  background: var(--accent-2);
+  color: #0b0f19;
 }
 
-/* === Buttons === */
-.btn {
-  @apply rounded-xl border px-4 py-2 font-medium transition-transform;
-  border-color: var(--border);
-  background: var(--primary);
-  color: var(--primary-foreground);
-}
-.btn:hover {
-  transform: translateY(-1px);
-}
-.btn.subtle {
-  background: transparent;
-  color: var(--fg);
+/* Panel headers can show a banner; we keep a subtle overlay for readability */
+.panel .panelHeader::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* background: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0)); */
+  pointer-events: none;
 }
 
-/* === Chips & hints === */
-.chip {
-  @apply text-xs px-2 py-1 rounded-full;
-  background: var(--chip);
-}
-.hint {
-  @apply text-xs opacity-70;
-}
-
-/* === Panel headers → gradient === */
-.theme-macera .panelHeader {
-  background: linear-gradient(90deg, #0ea5e9, #22d3ee);
-  color: white;
-}
-.theme-cicek .panelHeader {
-  background: linear-gradient(90deg, #ec4899, #f472b6);
-  color: white;
-}
-.theme-gece .panelHeader {
-  background: linear-gradient(90deg, #111827, #0f172a);
-  color: white;
-}
-.theme-orman .panelHeader {
-  background: linear-gradient(90deg, #22c55e, #86efac);
-  color: #0b3d1b;
-}
-.theme-okyanus .panelHeader {
-  background: linear-gradient(90deg, #0284c7, #38bdf8);
-  color: white;
-}
-.theme-retro .panelHeader {
-  background: linear-gradient(90deg, #f59e0b, #f97316);
-  color: #4a2600;
-}
-.theme-minimal .panelHeader {
-  background: transparent;
-  color: var(--fg);
-}
-.theme-galaksi .panelHeader {
-  background: linear-gradient(90deg, #8b5cf6, #06b6d4);
-  color: white;
+/* === THEME: Çiçek (fresh pastel + soft floral bg) === */
+.panel[data-theme="cicek"] {
+  --panel-bg: #fdf2f8;
+  --panel-fg: #3b0764;
+  --panel-card: rgba(255,255,255,0.7);
+  --panel-border: rgba(219,39,119,0.25);
+  --accent: #ec4899;
+  --accent-2: #f472b6;
+  background-image: url("/themes/flower.svg");
+  background-size: cover;
+  background-position: center;
 }
 
-/* === Tasks & presence === */
-.task {
-  @apply flex items-center gap-2 border rounded-xl px-3 py-2 select-none transition-colors;
-  border-color: var(--border);
-  background: var(--panel);
+/* === THEME: Şimşek McQueen (bold red + lightning motif) === */
+.panel[data-theme="mcqueen"] {
+  --panel-bg: #180000;
+  --panel-fg: #ffe7e7;
+  --panel-card: rgba(255,255,255,0.07);
+  --panel-border: rgba(255,59,48,0.35);
+  --accent: #ff3b30;
+  --accent-2: #ffd60a;
+  background-image: url("/themes/mcqueen.svg");
+  background-size: cover;
+  background-position: center;
 }
-.task.done {
-  @apply opacity-60 line-through;
+
+/* === THEME: Gotik (dark charcoal + ornate pattern) === */
+.panel[data-theme="gotik"] {
+  --panel-bg: #0b0b0f;
+  --panel-fg: #e5e7eb;
+  --panel-card: rgba(255,255,255,0.05);
+  --panel-border: rgba(148,163,184,0.25);
+  --accent: #7c3aed;
+  --accent-2: #4f46e5;
+  background-image: url("/themes/gothic.svg");
+  background-size: cover;
+  background-position: center;
 }
-.task .handle {
-  cursor: grab;
+
+/* === THEME: Minimal (safe default) === */
+.panel[data-theme="minimal"] {
+  --panel-bg: #0f172a;
+  --panel-fg: #e2e8f0;
+  --panel-card: rgba(255,255,255,0.06);
+  --panel-border: rgba(255,255,255,0.08);
+  --accent: #22c55e;
+  --accent-2: #3b82f6;
+  background: radial-gradient(1200px 600px at 0% 0%, rgba(255,255,255,0.06), transparent),
+              radial-gradient(1200px 600px at 100% 100%, rgba(255,255,255,0.05), transparent),
+              #0f172a;
 }
+
+/* presence dot colors left intact */
 .presence-dot {
-  @apply inline-block rounded-full w-2 h-2 mr-2;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #38bdf8;
 }
-.presence-on {
-  background: #22c55e;
+.presence-on { background: #22c55e; }
+.presence-off { background: #6b7280; }
+
+/* === Header banner readability & shine (added by ChatGPT) === */
+.panel .panelHeader {
+  background: transparent !important;
+  border: none !important;
+  position: relative;
+  backdrop-filter: saturate(1.15) blur(0px);
+  -webkit-backdrop-filter: saturate(1.15) blur(0px);
 }
-.presence-off {
-  background: #888;
+.panel .panelHeader::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* background: linear-gradient(to bottom, rgba(0,0,0,.45), rgba(0,0,0,.15), rgba(0,0,0,.45)); */
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .panel .panelHeader::after {
+    content: "";
+    position: absolute; inset: 0;
+    /* background: linear-gradient(120deg, transparent 45%, rgba(255,255,255,.18) 50%, transparent 55%); */
+    mix-blend-mode: overlay;
+    animation: header-shine 4.2s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes header-shine {
+    0% { transform: translateX(-60%); }
+    100% { transform: translateX(60%); }
+  }
 }
 
-/* === Base reset === */
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground transition-colors duration-300;
-  }
+
+/* Animations & effects */
+@keyframes panel-in { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+.panel { animation: panel-in .35s ease both }
+.card { transition: transform .2s ease, box-shadow .2s ease }
+.card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.2) }
+.btn { transition: transform .15s ease, opacity .2s ease }
+.btn:active { transform: scale(.98) }
+
+/* Mobile tweaks */
+@media (max-width: 640px){
+  .panel { border-radius: .75rem }
+  .panel .panelHeader .w-14.h-14 { width: 48px; height: 48px }
+  .card .input, .card .textarea { font-size: 16px } /* mobile keyboard zoom fix */
 }

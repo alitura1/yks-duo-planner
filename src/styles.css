@@ -1,3 +1,4 @@
+@import "./themes.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -53,14 +54,6 @@
 .hint{ @apply text-xs opacity-70 }
 
 /* Sub-themes (affect headers/cards subtly) */
-.theme-macera .panelHeader{ background: linear-gradient(90deg,#0ea5e9,#22d3ee); color:white }
-.theme-cicek  .panelHeader{ background: linear-gradient(90deg,#ec4899,#f472b6); color:white }
-.theme-gece   .panelHeader{ background: linear-gradient(90deg,#111827,#0f172a); color:white }
-.theme-orman  .panelHeader{ background: linear-gradient(90deg,#22c55e,#86efac); color:#0b3d1b }
-.theme-okyanus.panel .panelHeader{ background: linear-gradient(90deg,#0284c7,#38bdf8); color:white }
-.theme-retro  .panelHeader{ background: linear-gradient(90deg,#f59e0b,#f97316); color:#4a2600 }
-.theme-minimal .panelHeader{ background: transparent; color: var(--fg); }
-.theme-galaksi .panelHeader{ background: linear-gradient(90deg,#8b5cf6,#06b6d4); color:white }
 
 .task{
   @apply flex items-center gap-2 border rounded-xl px-3 py-2 bg-[var(--panel)] select-none;
@@ -130,4 +123,152 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Themed panel headers (data-theme scoped) */
+
+
+/* Generic CSS variables for theming */
+.panel {
+  --bg: var(--theme-bg, #111);
+  --panel: var(--theme-panel, #222);
+  --header: var(--theme-header, #333);
+  --text: var(--theme-text, #fff);
+  --accent: var(--theme-accent, #2563eb);
+  background: var(--panel);
+  color: var(--text);
+}
+.panel .panelHeader {
+  background: var(--header);
+  color: var(--text);
+}
+.panel input, .panel textarea {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--accent);
+}
+.panel button {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+
+/* === Theme-aware building blocks === */
+.panel { background: var(--theme-bg); color: var(--theme-text); border: 1px solid var(--theme-border); }
+.panel .card { background: var(--theme-panel); border: 1px solid var(--theme-border); }
+.panel .panelHeader { background: var(--theme-header); color: var(--theme-text); }
+.panel input,.panel textarea,.panel .input,.panel .textarea{
+  background: var(--theme-input); color: var(--theme-text); border: 1px solid var(--theme-border);
+}
+.panel .btn, .panel button{
+  background: var(--theme-accent); color: #0b0b0f; border: 1px solid var(--theme-border);
+}
+.panel .btn:hover, .panel button:hover{ transform: translateY(-1px); }
+.panel .chip{ background: rgba(255,255,255,0.15); color: #fff; }
+
+
+/* Themed elements */
+.panel .card { background: var(--panel); border: 1px solid var(--border, rgba(255,255,255,0.1)); }
+.panel .chip { background: var(--badge, rgba(255,255,255,0.08)); color: var(--text); }
+.panel .input, .panel .select, .panel .textarea {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--accent), transparent 60%);
+}
+.panel .btn, .panel button {
+  background: var(--accent);
+  color: color-mix(in srgb, var(--text), #000 70%);
+  border: 1px solid color-mix(in srgb, var(--accent), black 30%);
+}
+.panel .btn:hover, .panel button:hover { transform: translateY(-1px) scale(1.01); }
+
+
+
+/* === Enhanced background handling & effects (added by ChatGPT) === */
+
+/* Smooth transitions for theme changes */
+*,
+*::before,
+*::after {
+  transition: background-color .25s ease, color .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+
+/* Ensure background image always fully covers and is centered */
+.panel {
+  position: relative;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+/* Overlay for readability + subtle vignette */
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(1200px 600px at 0% 0%, rgba(0,0,0,.18), transparent 50%),
+    radial-gradient(1200px 600px at 100% 0%, rgba(0,0,0,.14), transparent 55%),
+    radial-gradient(1400px 800px at 50% 100%, rgba(0,0,0,.24), transparent 60%),
+    linear-gradient(to bottom, rgba(0,0,0,.18), rgba(0,0,0,.10), rgba(0,0,0,.18));
+  mix-blend-mode: multiply;
+}
+
+/* Accent-tinted film on top for better brand color feel */
+.panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--theme-accent), transparent 86%), transparent 40%),
+    linear-gradient(300deg, color-mix(in srgb, var(--theme-accent), transparent 90%), transparent 45%);
+  opacity: .65;
+  mix-blend-mode: soft-light;
+}
+
+/* Subtle animated background pan (prefers-reduced-motion respected) */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes bg-pan {
+    0%   { background-position: 50% 50%; }
+    50%  { background-position: 52% 48%; }
+    100% { background-position: 50% 50%; }
+  }
+  .panel { animation: bg-pan 30s ease-in-out infinite; }
+}
+
+/* Themed atmosphere extras */
+.panel[data-theme="mcqueen"]::after {
+  /* racing red beams */
+  background-image:
+    repeating-linear-gradient(115deg, rgba(255, 0, 0, .13) 0 2px, transparent 2px 12px),
+    linear-gradient(120deg, color-mix(in srgb, var(--theme-accent), transparent 86%), transparent 40%),
+    linear-gradient(300deg, color-mix(in srgb, var(--theme-accent), transparent 90%), transparent 45%);
+  opacity: .8;
+  mix-blend-mode: screen;
+}
+
+.panel[data-theme="gotik"]::after {
+  background-image:
+    radial-gradient(600px 300px at 50% 10%, rgba(120, 0, 60, .15), transparent 60%),
+    radial-gradient(600px 300px at 10% 90%, rgba(60, 0, 100, .12), transparent 60%);
+  opacity: .7;
+  mix-blend-mode: overlay;
+}
+
+.panel[data-theme="cicek"]::after {
+  background-image:
+    radial-gradient(800px 400px at 20% 20%, rgba(255, 192, 203, .25), transparent 60%),
+    radial-gradient(800px 400px at 80% 80%, rgba(255, 105, 180, .18), transparent 60%);
+  opacity: .7;
+}
+
+/* Hover micro-interactions */
+.card:hover {
+  box-shadow: 0 8px 28px rgba(0,0,0,.22);
+  transform: translateY(-2px);
 }
