@@ -28,5 +28,24 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow write: if isOwner(uid) || isAdminPP();
     }
+
+    // --- Rewards rules ---
+    match /rewards/{rewardId} {
+      allow read: if isSignedIn();
+
+      // sadece kendi adına reward oluşturabilir
+      allow create: if isSignedIn() &&
+                    request.resource.data.userId == request.auth.uid &&
+                    request.resource.data.used == false;
+
+      // sadece sahibi kendi reward'unu update edebilir (örn. used:true yapmak için)
+      allow update: if isSignedIn() &&
+                    resource.data.userId == request.auth.uid &&
+                    request.resource.data.userId == resource.data.userId;
+
+      // sadece sahibi silebilir
+      allow delete: if isSignedIn() &&
+                    resource.data.userId == request.auth.uid;
+    }
   }
 }

@@ -27,3 +27,12 @@ export interface Task {
   order: number
   createdAt?: any
 }
+
+// 🎁 Ödül sistemi tipi
+export interface Reward {
+  id: string
+  userId: string
+  name: string
+  used: boolean
+  createdAt: any
+}

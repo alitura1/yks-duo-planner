@@ -3,7 +3,6 @@ import { getTheme, themes } from "../themes";
 import { usePresence } from "../hooks/usePresence";
 import { useMinuteTicker } from "../hooks/useMinuteTicker";
 import { StatusCard } from "./StatusCard";
-import { PhotoHistoryModal } from "./PhotoHistoryModal";
 import { TaskColumn } from "./TaskColumn";
 import {
   onTasks,
@@ -14,6 +13,15 @@ import {
 } from "../api/tasks";
 import type { Task, UserProfile } from "../types";
 import { useUser } from "../contexts/UserContext";
+
+// 🎁 ödül sistemi
+import { GiftButton } from "../features/rewards/GiftButton";
+import { rollRewardForUser } from "../features/rewards/api";
+import { useRewardSounds } from "../features/rewards/useRewardSounds";
+
+// firestore güncelleme için
+import { updateDoc, doc } from "firebase/firestore";
+import { db } from "../firebase";
 
 function formatLastSeen(ts?: number | null) {
   if (!ts) return "Bilinmiyor";
@@ -38,12 +46,12 @@ export const UserPanel: React.FC<{
 }> = ({ label, selectedDay, targetUser, canEdit, profile, side }) => {
   const pres = usePresence(targetUser?.id);
   useMinuteTicker();
-  const { theme } = useUser(); // kendi kullanıcı teması (sol panelde kullanılacak)
-
-  const [photoOpen, setPhotoOpen] = useState(false);
+  const { theme } = useUser();
 
   const [items, setItems] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState("");
+
+  const sfx = useRewardSounds();
 
   // 🔔 Görevleri dinle
   useEffect(() => {
@@ -63,11 +71,33 @@ export const UserPanel: React.FC<{
     setNewTask("");
   };
 
+  // ✅ Görev toggle + ödül denemesi (sadece 1 kez)
+  async function handleToggleTask(t: Task, newDone: boolean) {
+    await toggleTask(t.id, newDone);
+
+    if (newDone && !t.rewardGiven) {
+      try {
+        const res = await rollRewardForUser(t.ownerUid);
+        if (res.won) {
+          sfx.won();
+          console.log("🎁 Ödül kazandın:", res.name);
+        }
+
+        // 🔒 Önemli: kazanılsa da kazanılmasa da ödül hakkı tüketilmeli
+        await updateDoc(doc(db, "tasks", t.id), {
+          rewardGiven: true,
+        });
+      } catch (err) {
+        console.error("Ödül kontrolü hatası:", err);
+      }
+    }
+  }
+
   // 🎨 Tema seçimi
   const appliedTheme =
     side === "right"
-      ? targetUser?.theme || "minimal" // sağ panel → karşı tarafın teması
-      : theme || "minimal"; // sol panel → kendi seçtiğimiz tema
+      ? targetUser?.theme || "minimal"
+      : theme || "minimal";
 
   const themeMap = useMemo(
     () => Object.fromEntries(themes.map((t) => [t.value, t])),
@@ -134,17 +164,16 @@ export const UserPanel: React.FC<{
             </span>
           </div>
         </div>
-        <div className="ml-auto relative z-10 chip bg-white/20 text-[var(--text)]">
-          Tema: {appliedTheme}
+        <div className="ml-auto flex items-center gap-2 relative z-10">
+          <div className="chip bg-white/20 text-[var(--text)]">
+            Tema: {appliedTheme}
+          </div>
+          {/* 🎁 Gift button */}
+          <GiftButton
+            currentUserId={profile.id}
+            viewingUserId={targetUser?.id}
+          />
         </div>
-        {targetUser?.photoHistory?.length ? (
-          <button
-            className="ml-2 z-10 btn"
-            onClick={() => setPhotoOpen(true)}
-          >
-            Genişlet
-          </button>
-        ) : null}
       </div>
 
       {/* CONTENT */}
@@ -185,7 +214,7 @@ export const UserPanel: React.FC<{
             <TaskColumn
               items={items}
               canEdit={canEdit}
-              onToggle={(t) => toggleTask(t.id, !t.done)}
+              onToggle={handleToggleTask} // ✅ ödül entegrasyonu
               onReorder={async (ordered) => {
                 for (let i = 0; i < ordered.length; i++) {
                   await setTaskOrder(ordered[i].id, i);
@@ -200,13 +229,6 @@ export const UserPanel: React.FC<{
           </div>
         </div>
       </div>
-
-      {photoOpen && targetUser?.photoHistory ? (
-        <PhotoHistoryModal
-          photos={targetUser.photoHistory}
-          onClose={() => setPhotoOpen(false)}
-        />
-      ) : null}
     </div>
   );
 };
