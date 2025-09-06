@@ -245,7 +245,7 @@
 .panel[data-theme="mcqueen"]::after {
   /* racing red beams */
   background-image:
-    repeating-linear-gradient(115deg, rgba(255, 0, 0, .13) 0 2px, transparent 2px 12px),
+     0 2px, transparent 2px 12px),
     linear-gradient(120deg, color-mix(in srgb, var(--theme-accent), transparent 86%), transparent 40%),
     linear-gradient(300deg, color-mix(in srgb, var(--theme-accent), transparent 90%), transparent 45%);
   opacity: .8;

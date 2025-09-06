@@ -1,132 +1,118 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { auth, db } from "../firebase";
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut, User } from "firebase/auth";
-import { doc, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut as fbSignOut,
+  signInAnonymously,
+  User as FirebaseUser,
+} from "firebase/auth";
+import { doc, onSnapshot } from "firebase/firestore";
 import type { UserProfile } from "../types";
 
-type Ctx = {
-  user: User | null;
+// Public shape expected across the app
+export interface CtxUser {
+  uid: string;
+  email?: string | null;
+  displayName?: string | null;
+  photoURL?: string | null;
+  isAnonymous?: boolean;
+}
+
+interface UserCtx {
+  // firebase user (or guest anon user)
+  user: CtxUser | null;
+  // profile document from Firestore (admins etc.); null for guests
   profile: UserProfile | null;
-  theme: string; // 🔑 Eklendi
+  // theme convenience (falls back to 'gothic' when unknown)
+  theme: string;
+  // read-only guest?
+  isGuest: boolean;
+  // auth actions
   signInEmail: (email: string, password: string) => Promise<void>;
+  continueAsGuest: () => Promise<void>;
   signOutNow: () => Promise<void>;
-  updateTheme: (theme: string) => Promise<void>;
-  updateAvatar: (url: string) => Promise<void>;
-};
+}
 
-const UserCtx = createContext<Ctx>(null as any);
+const Ctx = createContext<UserCtx>(null as any);
 
-export const UserProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+function toCtxUser(u: FirebaseUser | null): CtxUser | null {
+  if (!u) return null;
+  return {
+    uid: u.uid,
+    email: u.email,
+    displayName: u.displayName,
+    photoURL: u.photoURL,
+    isAnonymous: u.isAnonymous,
+  };
+}
+
+export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [fbUser, setFbUser] = useState<FirebaseUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
+  // Subscribe to auth state
   useEffect(() => {
-    let unsubProfile: (() => void) | null = null;
-
-    const unsubAuth = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-
-      if (unsubProfile) {
-        unsubProfile();
-        unsubProfile = null;
-      }
-
-      if (u) {
-        const ref = doc(db, "users", u.uid);
-        unsubProfile = onSnapshot(ref, (s) => {
-          const d = s.data() as any;
-          if (d) {
-            setProfile({ id: s.id, ...d } as UserProfile);
-          } else {
-            setProfile(null);
-          }
-        });
-      } else {
-        setProfile(null);
-      }
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setFbUser(u);
     });
-
-    return () => {
-      unsubAuth();
-      if (unsubProfile) unsubProfile();
-    };
+    return () => unsub();
   }, []);
 
-  // ✅ presence takibi
+  // Subscribe to profile doc when signed-in with a "real" account (not guest/anon)
   useEffect(() => {
-    if (!user) return;
-    const ref = doc(db, "presence", user.uid);
-
-    const touch = () =>
-      setDoc(ref, { online: true, lastSeen: Date.now() }, { merge: true });
-
-    touch();
-
-    const onVis = () =>
-      setDoc(
-        ref,
-        { online: !document.hidden, lastSeen: Date.now() },
-        { merge: true }
-      );
-
-    const intv = setInterval(touch, 30_000);
-
-    document.addEventListener("visibilitychange", onVis);
-    window.addEventListener("beforeunload", () =>
-      setDoc(ref, { online: false, lastSeen: Date.now() }, { merge: true })
-    );
-
-    return () => {
-      clearInterval(intv);
-      document.removeEventListener("visibilitychange", onVis);
-    };
-  }, [user?.uid]);
-
-  // ✅ Tema güncelleme
-  const updateTheme = async (theme: string) => {
-    if (!user) return;
-    const ref = doc(db, "users", user.uid);
-    await updateDoc(ref, { theme });
-  };
-
-  // ✅ Avatar güncelleme
-  const updateAvatar = async (url: string) => {
-    if (!user) return;
-    const ref = doc(db, "users", user.uid);
-    await updateDoc(ref, { avatar: url });
-  };
+    if (!fbUser || fbUser.isAnonymous) {
+      setProfile(null);
+      return;
+    }
+    const ref = doc(db, "users", fbUser.uid);
+    const unsub = onSnapshot(ref, (snap) => {
+      const data = snap.data() as any;
+      if (data) setProfile({ id: snap.id, ...data });
+      else setProfile(null);
+    }, (_err) => {
+      // Don't crash UI if missing permissions
+      setProfile(null);
+    });
+    return () => unsub();
+  }, [fbUser?.uid, fbUser?.isAnonymous]);
 
   const signInEmail = async (email: string, password: string) => {
-    const allow = (import.meta.env.VITE_ALLOWLIST || "")
-      .split(",")
-      .map((s) => s.trim().toLowerCase())
-      .filter(Boolean);
-
-    if (allow.length && !allow.includes(email.trim().toLowerCase())) {
-      throw new Error("Bu sistem sadece yetkili hesaplarla kullanılabilir.");
-    }
+    // preserve original API name to avoid "signInEmail Function" errors
     await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const signOutNow = async () => {
-    await signOut(auth);
+  const continueAsGuest = async () => {
+    // Use Firebase Anonymous auth so Firestore reads can succeed under common rules
+    await signInAnonymously(auth);
+    // profile will remain null; isGuest will be true via isAnonymous flag
   };
 
-  // 🔑 Burada theme alanını ekledik
-  const value = useMemo(
-    () => ({
+  const signOutNow = async () => {
+    await fbSignOut(auth);
+  };
+
+  const value: UserCtx = useMemo(() => {
+    const user = toCtxUser(fbUser);
+    const isGuest = !!fbUser?.isAnonymous;
+    const theme = profile?.theme ?? "gothic";
+    return {
       user,
       profile,
-      theme: profile?.theme || "default",
+      theme,
+      isGuest,
       signInEmail,
+      continueAsGuest,
       signOutNow,
-      updateTheme,
-      updateAvatar,
-    }),
-    [user, profile]
-  );
+    };
+  }, [fbUser, profile]);
 
-  return <UserCtx.Provider value={value}>{children}</UserCtx.Provider>;
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 };
 
-export const useUser = () => useContext(UserCtx);
+// Primary hook
+export const useUser = () => useContext(Ctx);
+
+// Back-compat: some files import AuthContext/useAuth; keep alias
+export const useAuth = useUser;
+export const AuthProvider = UserProvider;

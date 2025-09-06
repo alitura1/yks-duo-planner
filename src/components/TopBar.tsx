@@ -33,7 +33,7 @@ const days = [
 const dayKeys = days.map((d) => d.key)
 
 export function TopBar({ onOpenSettings, selectedDay, setSelectedDay }: TopbarProps) {
-  const { user, profile, signOutNow } = useUser()
+  const { user, profile, signOutNow, isGuest } = useUser()
   const [theme, setTheme] = useState(profile?.theme || "macera")
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem("darkMode")
@@ -80,6 +80,7 @@ export function TopBar({ onOpenSettings, selectedDay, setSelectedDay }: TopbarPr
 
   // tema değiştir (sadece kendi profilini güncelle)
   const handleThemeChange = async (val: string) => {
+    if (isGuest) return;
     setTheme(val)
     if (user) {
       await updateDoc(doc(db, "users", user.uid), { theme: val })
@@ -108,7 +109,7 @@ export function TopBar({ onOpenSettings, selectedDay, setSelectedDay }: TopbarPr
           </Button>
           {/* Tema seçici */}
           <Select value={theme} onValueChange={handleThemeChange}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[140px]" disabled={isGuest}>
               <SelectValue placeholder="Tema seç" />
             </SelectTrigger>
             <SelectContent>
@@ -126,7 +127,7 @@ export function TopBar({ onOpenSettings, selectedDay, setSelectedDay }: TopbarPr
           </Button>
 
           {/* Ayarlar */}
-          <Button variant="outline" size="icon" onClick={onOpenSettings}>
+          <Button variant="outline" size="icon" onClick={!isGuest ? onOpenSettings : undefined} disabled={isGuest} title={isGuest ? "Misafir modunda ayarlar kapalı" : "Ayarlar"}>
             <Settings className="h-5 w-5" />
           </Button>
         </div>

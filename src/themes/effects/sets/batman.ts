@@ -1,12 +1,17 @@
 import type { Effect } from "../types"
-import { rnd } from "../util"
-let bats:any[]=[], last=0
-export const batman: Effect = { fps:50, init:()=>{bats=[];last=0}, frame:(ctx,w,h,t)=>{
-  if (t-last>1.5 && bats.length<10){ last=t; bats.push({x:-40,y:rnd(40,h*0.7),vx:rnd(1.2,2.2),vy:rnd(-0.3,0.3),s:rnd(10,18),t:0,life:560}) }
-  ctx.globalAlpha=0.9
-  for(let i=bats.length-1;i>=0;i--){ const b=bats[i]; b.x+=b.vx; b.y+=b.vy+Math.sin(b.t*0.15)*0.3; b.t+=1;
-    ctx.fillStyle="rgba(0,0,0,0.65)"; ctx.beginPath(); ctx.ellipse(b.x,b.y,b.s,b.s*0.6,0,0,Math.PI*2); ctx.fill();
-    ctx.fillRect(b.x-b.s*0.2,b.y-b.s*0.15,b.s*0.4,b.s*0.3);
-    if(b.x>w+40||b.t>b.life) bats.splice(i,1)
+import { rnd, glow } from "../util"
+let pulses: any[] = []
+export const batman: Effect = { fps: 45, init: ()=>{pulses=[]}, frame:(ctx,w,h,t)=>{
+  // vignette
+  const g = ctx.createLinearGradient(0,0,0,h)
+  g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,0.35)')
+  ctx.fillStyle = g; ctx.fillRect(0,0,w,h)
+  // occasional yellow pulse
+  if (Math.random()<0.01) pulses.push({x: rnd(w*0.2,w*0.8), y: rnd(h*0.1,h*0.4), r: rnd(20,60), life: rnd(0.6,1.2), t:0})
+  for(let i=pulses.length-1;i>=0;i--){
+    const p = pulses[i]; const a = Math.max(0,1 - p.t/p.life)
+    glow(ctx,p.x,p.y,p.r * a, `rgba(255,220,80,${0.25*a})`)
+    p.t += 1/45
+    if (p.t > p.life) pulses.splice(i,1)
   }
 }}

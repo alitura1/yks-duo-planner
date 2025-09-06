@@ -28,8 +28,18 @@ export function GiftModal({
   }, [open, ownerId]);
 
   async function onUse(id: string) {
+    // 🎨 optimistic update → UI anında güncellenir
+    setRewards((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, used: true } : r))
+    );
+
+    // 🔊 ses çal
+    sfx.click();
+
+    // ✅ Firestore güncellemesi
     await markRewardUsed(id);
-    sfx.used();
+
+    // 🔄 Tekrar yükle (ekstra güvenlik için)
     const updated = await listRewards(ownerId);
     setRewards(updated);
   }

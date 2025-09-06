@@ -1,8 +1,12 @@
 import type { Effect } from "../types"
-import { rnd } from "../util"
-let sabers:any[]=[], last=0
-export const vader: Effect = { fps:60, init:()=>{sabers=[];last=0}, frame:(ctx,w,h,t)=>{
-  if (t-last>2.6){ last=t; sabers.push({x:-60,y:rnd(h*0.3,h*0.6),len:rnd(w*0.5,w*0.9),life:180,t:0}) }
-  for(let i=sabers.length-1;i>=0;i--){ const s=sabers[i]; s.t+=10; const a=Math.max(0,(s.life-s.t)/s.life); const x2=s.x+s.t*1.6;
-    ctx.strokeStyle=`rgba(255,0,50,${0.8*a})`; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(x2,s.y); ctx.stroke(); if(s.t>s.life) sabers.splice(i,1) }
+import { rnd, glow } from "../util"
+let pulses: any[] = []
+export const vader: Effect = { fps: 35, init: ()=>{pulses=[]}, frame:(ctx,w,h,t)=>{
+  if (Math.random()<0.03) pulses.push({x:rnd(w*0.1,w*0.9), y:rnd(h*0.1,h*0.9), r:rnd(6,40), life:rnd(0.6,1.2), t:0})
+  for(let i=pulses.length-1;i>=0;i--){
+    const p=pulses[i]; const a = Math.max(0,1 - p.t/p.life)
+    glow(ctx,p.x,p.y,p.r*(1-a), `rgba(255,40,40,${0.18*a})`)
+    p.t += 1/35
+    if (p.t > p.life) pulses.splice(i,1)
+  }
 }}

@@ -2,50 +2,44 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isSignedIn() { return request.auth != null; }
+    function isGuest() { return isSignedIn() && request.auth.token.firebase.sign_in_provider == "anonymous"; }
     function isOwner(uid) { return isSignedIn() && request.auth.uid == uid; }
     function roleOf(uid) { return get(/databases/$(database)/documents/users/$(uid)).data.role; }
     function isAdmin() { return isSignedIn() && roleOf(request.auth.uid) in ['admin','adminpp']; }
     function isAdminPP() { return isSignedIn() && roleOf(request.auth.uid) == 'adminpp'; }
 
+    // ---- Users ----
     match /users/{uid} {
       allow read: if isSignedIn();
-      allow update: if isOwner(uid) || isAdminPP();
-      allow create: if isAdmin();
+      allow create: if !isGuest() && isOwner(uid);   // ✅ kendi kaydını açabilsin
+      allow update: if !isGuest() && (isOwner(uid) || isAdminPP());
     }
 
+    // ---- Tasks ----
     match /tasks/{taskId} {
       allow read: if isSignedIn();
-      allow create: if isOwner(request.resource.data.ownerUid) || isAdminPP();
-      allow update, delete: if isOwner(resource.data.ownerUid) || isAdminPP();
+      allow create: if !isGuest() && request.resource.data.ownerUid == request.auth.uid; // ✅
+      allow update, delete: if !isGuest() && (resource.data.ownerUid == request.auth.uid || isAdminPP());
     }
 
+    // ---- Presence ----
     match /presence/{uid} {
       allow read: if isSignedIn();
-      allow create, update: if isOwner(uid);
+      allow create, update: if !isGuest() && isOwner(uid);
     }
 
+    // ---- Themes sync ----
     match /meta/themesSync/{uid} {
       allow read: if isSignedIn();
-      allow write: if isOwner(uid) || isAdminPP();
+      allow write: if !isGuest() && (isOwner(uid) || isAdminPP());
     }
 
-    // --- Rewards rules ---
+    // ---- Rewards ----
     match /rewards/{rewardId} {
       allow read: if isSignedIn();
-
-      // sadece kendi adına reward oluşturabilir
-      allow create: if isSignedIn() &&
-                    request.resource.data.userId == request.auth.uid &&
-                    request.resource.data.used == false;
-
-      // sadece sahibi kendi reward'unu update edebilir (örn. used:true yapmak için)
-      allow update: if isSignedIn() &&
-                    resource.data.userId == request.auth.uid &&
-                    request.resource.data.userId == resource.data.userId;
-
-      // sadece sahibi silebilir
-      allow delete: if isSignedIn() &&
-                    resource.data.userId == request.auth.uid;
+      allow create: if !isGuest() && request.resource.data.userId == request.auth.uid;  // ✅
+      allow update: if !isGuest() && resource.data.userId == request.auth.uid;
+      allow delete: if !isGuest() && resource.data.userId == request.auth.uid;
     }
   }
 }

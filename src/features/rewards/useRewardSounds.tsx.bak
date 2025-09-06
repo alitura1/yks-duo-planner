@@ -1,0 +1,128 @@
+import { useEffect, useMemo, useRef } from "react";
+
+function createAudioElement(src: string, volume = 0.75) {
+  try {
+    const a = new Audio(src);
+    a.preload = "auto";
+    a.volume = volume;
+    return a;
+  } catch {
+    return null;
+  }
+}
+
+function safePlay(audio: HTMLAudioElement | null) {
+  if (!audio) return;
+  try {
+    audio.currentTime = 0;
+    const p = audio.play();
+    if (p && typeof p.then === "function") {
+      p.catch(() => {
+        // autoplay reddedilirse sessizce yoksay
+      });
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function detectPreferredSrc(basePath: string) {
+  if (typeof document === "undefined") return basePath + ".wav";
+  const test = document.createElement("audio");
+  if (test.canPlayType && test.canPlayType("audio/mpeg") !== "") {
+    return basePath + ".mp3";
+  }
+  return basePath + ".wav";
+}
+
+/**
+ * useRewardSounds
+ * Sadece ses efektlerini yönetir.
+ */
+export function useRewardSounds() {
+  const audiosRef = useRef<Record<string, HTMLAudioElement | null>>({
+    win: null,
+    open: null,
+    click: null,
+    fail: null,
+    taskComplete: null,
+    taskDelete: null,
+  });
+
+  useEffect(() => {
+    const bases: Record<string, string> = {
+      win: "/sounds/reward-win",
+      open: "/sounds/reward-open",
+      click: "/sounds/reward-click",
+      fail: "/sounds/reward-fail",
+      taskComplete: "/sounds/task-complete",
+      taskDelete: "/sounds/task-delete",
+    };
+
+    for (const [key, base] of Object.entries(bases)) {
+      try {
+        const src = detectPreferredSrc(base);
+        const volume = key === "win" ? 0.9 : 0.75;
+        audiosRef.current[key] = createAudioElement(src, volume);
+      } catch {
+        audiosRef.current[key] = null;
+      }
+    }
+
+    // autoplay kısıtlamasını aşmak için unlock
+    let unlocked = false;
+    function tryUnlock() {
+      if (unlocked) return;
+      unlocked = true;
+      try {
+        const c = audiosRef.current.click;
+        if (c) {
+          c.muted = true;
+          const p = c.play();
+          if (p && typeof p.then === "function") {
+            p.then(() => {
+              c.pause();
+              c.muted = false;
+            }).catch(() => {
+              c.muted = false;
+            });
+          } else {
+            c.pause();
+            c.muted = false;
+          }
+        }
+      } catch {
+        // ignore
+      }
+      document.removeEventListener("pointerdown", tryUnlock);
+      document.removeEventListener("keydown", tryUnlock);
+    }
+
+    if (typeof document !== "undefined") {
+      document.addEventListener("pointerdown", tryUnlock, { once: true });
+      document.addEventListener("keydown", tryUnlock, { once: true });
+    }
+
+    return () => {
+      if (typeof document !== "undefined") {
+        document.removeEventListener("pointerdown", tryUnlock);
+        document.removeEventListener("keydown", tryUnlock);
+      }
+    };
+  }, []);
+
+  return useMemo(
+    () => ({
+      won: () => safePlay(audiosRef.current.win),
+      win: () => safePlay(audiosRef.current.win),
+      open: () => safePlay(audiosRef.current.open),
+      click: () => safePlay(audiosRef.current.click),
+      fail: () => safePlay(audiosRef.current.fail),
+      taskComplete: () => safePlay(audiosRef.current.taskComplete),
+      taskDelete: () => safePlay(audiosRef.current.taskDelete),
+    }),
+    []
+  );
+}
+
+export default useRewardSounds;

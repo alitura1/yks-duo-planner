@@ -1,8 +1,12 @@
 import type { Effect } from "../types"
 import { rnd } from "../util"
-let cubes:any[]=[]
-export const mineMining: Effect = { fps:50, init:()=>{cubes=[]}, frame:(ctx,w,h,t)=>{
-  if (cubes.length<8) cubes.push({x:rnd(20,w-20),y:-10,vy:rnd(0.5,1.0),life:900})
-  ctx.fillStyle="rgba(50,150,50,0.9)"
-  for(let i=cubes.length-1;i>=0;i--){ const c=cubes[i]; c.y+=c.vy; c.life--; ctx.fillRect(c.x,c.y,8,8); if(c.y>h+20||c.life<=0) cubes.splice(i,1) }
+let dust:any[]=[]
+export const mineMining: Effect = { fps: 30, init: ()=>{dust=[]}, frame:(ctx,w,h,t)=>{
+  if (Math.random()<0.05) dust.push({x:rnd(0,w), y:rnd(0,h), vx:rnd(-10,10), vy:rnd(-20,20), life:rnd(0.6,1.4), t:0})
+  for(let i=dust.length-1;i>=0;i--){
+    const d=dust[i]; d.x += d.vx*(1/30); d.y += d.vy*(1/30); d.t += 1/30
+    const a = Math.max(0,1 - d.t/d.life)
+    ctx.fillStyle = `rgba(200,180,140,${0.6*a})`; ctx.fillRect(d.x,d.y,2,2)
+    if (d.t > d.life) dust.splice(i,1)
+  }
 }}

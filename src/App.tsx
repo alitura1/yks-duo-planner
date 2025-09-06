@@ -9,9 +9,11 @@ import { todayKey } from "./utils"
 import type { UserProfile } from "./types"
 import { useHeartbeat } from "./hooks/useHeartbeat"
 import ThemeEffectSwitcher from "./themes/ThemeEffectSwitcher"
+// import removed: useAuth not needed
 
 const Auth: React.FC = () => {
-  const { signInEmail, profile } = useUser() // ✅ profile buradan alındı
+  const { signInEmail, profile, continueAsGuest } = useUser()
+  
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -27,53 +29,57 @@ const Auth: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen grid place-items-center p-6">
-      {/* ✅ profile artık tanımlı, hata kalkar */}
-      <ThemeEffectSwitcher themeKey={profile?.theme || "gothic"} />
-      <form className="card w-full max-w-sm" onSubmit={submit}>
-        <h2 className="text-lg font-bold">Giriş</h2>
-        <div className="mt-2">
-          <input
-            className="input"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-        <div className="mt-2">
-          <input
-            className="input"
-            type="password"
-            placeholder="Şifre"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        <button className="btn mt-3" type="submit">
-          Giriş Yap
+    <>
+      <div style={{ marginTop: 20 }}>
+        <button onClick={continueAsGuest}>
+          Misafir olarak devam et
         </button>
-        {error && <div className="mt-2 text-red-500 text-sm">{error}</div>}
-        <div className="hint mt-2">
-          Yalnızca Ali, Işıl ve admin++ giriş yapabilir. (Beni Hatırla aktif)
-        </div>
-      </form>
-    </div>
+      </div>
+
+      <div className="min-h-screen grid place-items-center p-6">
+        <ThemeEffectSwitcher themeKey={profile?.theme || "gothic"} />
+        <form className="card w-full max-w-sm" onSubmit={submit}>
+          <h2 className="text-lg font-bold">Giriş</h2>
+          <div className="mt-2">
+            <input
+              className="input"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div className="mt-2">
+            <input
+              className="input"
+              type="password"
+              placeholder="Şifre"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <button className="btn mt-3" type="submit">
+            Giriş Yap
+          </button>
+          {error && <div className="mt-2 text-red-500 text-sm">{error}</div>}
+          <div className="hint mt-2">
+            Yalnızca Ali, Işıl ve admin++ giriş yapabilir. (Beni Hatırla aktif)
+          </div>
+        </form>
+      </div>
+    </>
   )
 }
 
 export const App: React.FC = () => {
   const [selectedDay, setSelectedDay] = useState(todayKey())
-  const { user, profile } = useUser()
+  const { user, profile, isGuest } = useUser()
   const [users, setUsers] = useState<UserProfile[]>([])
   const [settingsOpen, setSettingsOpen] = useState(false)
 
-  // ✅ online heartbeat
   useHeartbeat()
 
-  // gün ilk açılışta bugünkü olsun
   useEffect(() => setSelectedDay(todayKey()), [])
 
-  // Firestore’dan kullanıcıları izle
   useEffect(
     () =>
       onSnapshot(collection(db, "users"), (s) =>
@@ -84,14 +90,11 @@ export const App: React.FC = () => {
 
   const leftUser = users.find((u) => u.side === "left")
   const rightUser = users.find((u) => u.side === "right")
-
   const isAdminPP = profile?.role === "adminpp"
 
-  // kısayol: "n" tuşuna basınca input focus
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() === "n") {
-        // Ignore when typing in inputs/textareas/selects or with modifiers
         const target = e.target as HTMLElement | null
         const tag = target?.tagName?.toLowerCase()
         const isTyping =
@@ -112,11 +115,10 @@ export const App: React.FC = () => {
   }, [])
 
   if (!user) return <Auth />
-  if (!profile) return <div className="p-6">Profil yükleniyor…</div>
+  if (!profile && !isGuest) return <div className="p-6">Profil yükleniyor…</div>
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* ✅ ana uygulamada da tema aktif */}
       <ThemeEffectSwitcher themeKey={profile?.theme || "gothic"} />
 
       <TopBar

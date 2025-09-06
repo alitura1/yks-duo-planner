@@ -4,10 +4,10 @@ import { doc, setDoc } from "firebase/firestore"
 import { useUser } from "../contexts/UserContext"
 
 export const useHeartbeat = () => {
-  const { user } = useUser()
+  const { user, isGuest } = useUser()
 
   useEffect(() => {
-    if (!user) return
+    if (!user || isGuest) return
 
     const ref = doc(db, "presence", user.uid)
 

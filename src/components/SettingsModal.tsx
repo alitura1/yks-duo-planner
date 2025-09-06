@@ -26,25 +26,24 @@ interface SettingsModalProps {
 }
 
 export default function SettingsModal({ open, setOpen }: SettingsModalProps) {
-  const { user, profile } = useUser()
-  const [newPass, setNewPass] = useState("");
-  const [confirmPass, setConfirmPass] = useState("");
+  const { user, profile, isGuest } = useUser()
+  const [newPass, setNewPass] = useState("")
+  const [confirmPass, setConfirmPass] = useState("")
   const [loading, setLoading] = useState(false)
 
   const strength = (p: string) => {
-    let s = 0;
-    if (p.length >= 8) s++;
-    if (/[A-Z]/.test(p)) s++;
-    if (/[a-z]/.test(p)) s++;
-    if (/[0-9]/.test(p)) s++;
-    if (/[^A-Za-z0-9]/.test(p)) s++;
-    return s; // 0-5
-  };
+    let s = 0
+    if (p.length >= 8) s++
+    if (/[A-Z]/.test(p)) s++
+    if (/[a-z]/.test(p)) s++
+    if (/[0-9]/.test(p)) s++
+    if (/[^A-Za-z0-9]/.test(p)) s++
+    return s // 0-5
+  }
 
   const [imageUrl, setImageUrl] = useState(profile?.photoURL || "")
   const [theme, setTheme] = useState(profile?.theme || "macera")
-  
-  // Profile değişince alanları senkronize et
+
   useEffect(() => {
     setTheme(profile?.theme || "macera")
     setImageUrl(profile?.photoURL || "")
@@ -52,8 +51,14 @@ export default function SettingsModal({ open, setOpen }: SettingsModalProps) {
 
   // 🔑 Şifre değiştirme
   const handlePasswordChange = async () => {
-    if (newPass !== confirmPass) { alert("Şifreler uyuşmuyor."); return; }
-    if (strength(newPass) < 3) { alert("Daha güçlü bir şifre seçin (en az 8 karakter, harf + rakam)."); return; }
+    if (newPass !== confirmPass) {
+      alert("Şifreler uyuşmuyor.")
+      return
+    }
+    if (strength(newPass) < 3) {
+      alert("Daha güçlü bir şifre seçin (en az 8 karakter, harf + rakam).")
+      return
+    }
     if (!auth.currentUser) return
     try {
       setLoading(true)
@@ -67,7 +72,7 @@ export default function SettingsModal({ open, setOpen }: SettingsModalProps) {
     }
   }
 
-  // 📷 Fotoğraf yükleme (Dosya seç - ImgBB ile)
+  // 📷 Fotoğraf yükleme
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !user || !profile) return
@@ -85,7 +90,6 @@ export default function SettingsModal({ open, setOpen }: SettingsModalProps) {
         })
 
       const base64Image = await toBase64(file)
-
       const formData = new FormData()
       formData.append("image", base64Image.split(",")[1])
 
@@ -99,6 +103,7 @@ export default function SettingsModal({ open, setOpen }: SettingsModalProps) {
 
       const url = data.data.url
 
+      if (isGuest) return
       await updateDoc(doc(db, "users", profile?.id), {
         photoURL: url,
         photoHistory: arrayUnion(url),
@@ -117,6 +122,7 @@ export default function SettingsModal({ open, setOpen }: SettingsModalProps) {
   const handleImageUrlSave = async () => {
     if (!user || !profile || !imageUrl) return
     try {
+      if (isGuest) return
       await updateDoc(doc(db, "users", profile?.id), {
         photoURL: imageUrl,
         photoHistory: arrayUnion(imageUrl),
@@ -132,6 +138,7 @@ export default function SettingsModal({ open, setOpen }: SettingsModalProps) {
     if (!user || !profile) return
     try {
       setTheme(value)
+      if (isGuest) return
       await updateDoc(doc(db, "users", profile?.id), { theme: value })
     } catch (err: any) {
       alert("Hata: " + err.message)
@@ -142,6 +149,7 @@ export default function SettingsModal({ open, setOpen }: SettingsModalProps) {
   const handleRevertPhoto = async (oldUrl: string) => {
     if (!user || !profile) return
     try {
+      if (isGuest) return
       await updateDoc(doc(db, "users", profile?.id), { photoURL: oldUrl })
       setImageUrl(oldUrl)
       alert("Eski fotoğraf geri yüklendi!")
@@ -155,9 +163,17 @@ export default function SettingsModal({ open, setOpen }: SettingsModalProps) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
+            {isGuest && (
+              <div className="mb-2 text-amber-600 text-sm">
+                Misafir modunda ayarlar değiştirilemez.
+              </div>
+            )}
             <DialogTitle>Ayarlar</DialogTitle>
           </DialogHeader>
-          <p className="text-center text-sm text-muted-foreground">Profil yükleniyor...</p>
+
+          <p className="text-center text-sm text-muted-foreground">
+            Profil yükleniyor...
+          </p>
         </DialogContent>
       </Dialog>
     )
@@ -167,6 +183,11 @@ export default function SettingsModal({ open, setOpen }: SettingsModalProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
+          {isGuest && (
+            <div className="mb-2 text-amber-600 text-sm">
+              Misafir modunda ayarlar değiştirilemez.
+            </div>
+          )}
           <DialogTitle>Ayarlar</DialogTitle>
         </DialogHeader>
 
@@ -247,8 +268,16 @@ export default function SettingsModal({ open, setOpen }: SettingsModalProps) {
             placeholder="Yeni şifrenizi girin"
           />
           <div className="mt-2">
-            <input className="input" type="password" value={confirmPass} onChange={(e)=>setConfirmPass(e.target.value)} placeholder="Yeni şifre (tekrar)" />
-            <div className="text-xs mt-1 opacity-70">Güç: {["Zayıf","Zayıf","Orta","İyi","Güçlü","Çok güçlü"][strength(newPass)]}</div>
+            <input
+              className="input"
+              type="password"
+              value={confirmPass}
+              onChange={(e) => setConfirmPass(e.target.value)}
+              placeholder="Yeni şifre (tekrar)"
+            />
+            <div className="text-xs mt-1 opacity-70">
+              Güç: {["Zayıf", "Zayıf", "Orta", "İyi", "Güçlü", "Çok güçlü"][strength(newPass)]}
+            </div>
           </div>
           <Button
             className="mt-2"

@@ -1,8 +1,14 @@
 import type { Effect } from "../types"
-import { rnd } from "../util"
-let stars:any[]=[]
-export const mlp: Effect = { fps:50, init:()=>{stars=[]}, frame:(ctx,w,h,t)=>{
-  if (stars.length<25) stars.push({x:rnd(0,w),y:rnd(0,h*0.6),vx:rnd(-0.2,0.2),vy:rnd(-0.1,0.1),r:rnd(1,2.5)})
-  for(let i=0;i<stars.length;i++){ const s=stars[i]; s.x+=s.vx; s.y+=s.vy; ctx.fillStyle="rgba(255,200,255,0.8)"; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill();
-    if(s.x<-10||s.x>w+10||s.y<-10||s.y>h*0.8){ stars.splice(i,1); i-- } }
+import { rnd, glow } from "../util"
+let rings: any[] = []
+const colors = ['#ff8fb3','#ffd1e0','#c3e7ff','#e6ffe6','#ffe5b3']
+export const mlp: Effect = { fps: 40, init: ()=>{rings=[]}, frame:(ctx,w,h,t)=>{
+  if (Math.random()<0.03) rings.push({x:rnd(0,w), y:rnd(0,h), r:rnd(10,60), life:rnd(0.8,1.6), t:0, color: colors[Math.floor(Math.random()*colors.length)]})
+  for(let i=rings.length-1;i>=0;i--){
+    const r = rings[i]; const a = Math.max(0,1 - r.t/r.life)
+    ctx.beginPath(); ctx.arc(r.x, r.y, r.r*(1-a*0.6), 0, Math.PI*2); ctx.strokeStyle = r.color; ctx.lineWidth = 3*(1-a); ctx.stroke()
+    glow(ctx, r.x, r.y, 6*(1-a), r.color)
+    r.t += 1/40
+    if (r.t > r.life) rings.splice(i,1)
+  }
 }}

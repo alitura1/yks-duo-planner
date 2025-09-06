@@ -73,7 +73,7 @@
   --panel-border: rgba(255,59,48,0.35);
   --accent: #ff3b30;
   --accent-2: #ffd60a;
-  background-image: url("/themes/mcqueen.svg");
+  background-color: #180000;
   background-size: cover;
   background-position: center;
 }
