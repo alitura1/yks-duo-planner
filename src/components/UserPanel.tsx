@@ -23,6 +23,9 @@ import { useRewardSounds } from "../features/rewards/useRewardSounds";
 import { updateDoc, doc } from "firebase/firestore";
 import { db } from "../firebase";
 
+// 🎉 toast
+import toast from "react-hot-toast";
+
 function formatLastSeen(ts?: number | null) {
   if (!ts) return "Bilinmiyor";
   const diff = Date.now() - ts;
@@ -80,7 +83,9 @@ export const UserPanel: React.FC<{
         const res = await rollRewardForUser(t.ownerUid);
         if (res.won) {
           sfx.won();
-          console.log("🎁 Ödül kazandın:", res.name);
+          toast.success(`🎁 Hediye kazandınız: ${res.name}`, {
+            duration: 3000,
+          });
         }
 
         // 🔒 Önemli: kazanılsa da kazanılmasa da ödül hakkı tüketilmeli
@@ -214,7 +219,7 @@ export const UserPanel: React.FC<{
             <TaskColumn
               items={items}
               canEdit={canEdit}
-              onToggle={handleToggleTask} // ✅ ödül entegrasyonu
+              onToggle={handleToggleTask}
               onReorder={async (ordered) => {
                 for (let i = 0; i < ordered.length; i++) {
                   await setTaskOrder(ordered[i].id, i);
