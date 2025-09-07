@@ -17,26 +17,27 @@ export const usePresence = (uid?: string | null) => {
     const ref = doc(db, "presence", uid)
 
     const unsub = onSnapshot(ref, (snap) => {
-      if (snap.exists()) {
-        const data = snap.data() as any
-        const lastSeen =
-          typeof data.lastSeen === "number"
-            ? data.lastSeen
-            : data.lastSeen?.toMillis?.() ?? null
-
-        // online bilgisini lastSeen + timeout'a göre hesapla
-        const isOnline =
-          Boolean(data.online) &&
-          lastSeen !== null &&
-          Date.now() - lastSeen < ONLINE_TIMEOUT
-
-        setPresence({
-          online: isOnline,
-          lastSeen,
-        })
-      } else {
+      if (!snap.exists()) {
         setPresence({ online: false, lastSeen: null })
+        return
       }
+
+      const data = snap.data() as any
+      const lastSeen =
+        typeof data.lastSeen === "number"
+          ? data.lastSeen
+          : data.lastSeen?.toMillis?.() ?? null
+
+      // ✅ Eğer online true ise direkt çevrimiçi kabul et
+      // ✅ Eğer online false ama lastSeen çok eski değilse yine çevrimiçi kabul et
+      const isOnline =
+        data.online === true ||
+        (lastSeen !== null && Date.now() - lastSeen < ONLINE_TIMEOUT)
+
+      setPresence({
+        online: isOnline,
+        lastSeen,
+      })
     })
 
     return () => unsub()
