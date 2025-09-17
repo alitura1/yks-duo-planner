@@ -107,6 +107,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [fbUser, profile]);
 
+  // weekly rotation: ensure previous week moved to history on login
+  useEffect(() => {
+    if (!profile) return;
+    import("../api/weekly").then(m => m.checkAndRotateWeekIfNeeded(profile.id)).catch(()=>{});
+  }, [profile]);
+
+
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 };
 

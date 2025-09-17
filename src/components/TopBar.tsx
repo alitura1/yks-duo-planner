@@ -9,6 +9,8 @@ import {
   SelectItem,
 } from "@/components/ui/select"
 import { useUser } from "../contexts/UserContext"
+import HistoryModal from "./HistoryModal";
+import StatsModal from "./StatsModal";
 import { doc, updateDoc } from "firebase/firestore"
 import { db } from "../firebase"
 import { themes } from "../themes"
@@ -18,7 +20,6 @@ interface TopbarProps {
   selectedDay: string
   setSelectedDay: (day: string) => void
 }
-
 
 const days = [
   { key: "Pazartesi", label: "Pzt" },
@@ -33,6 +34,8 @@ const days = [
 const dayKeys = days.map((d) => d.key)
 
 export function TopBar({ onOpenSettings, selectedDay, setSelectedDay }: TopbarProps) {
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
   const { user, profile, signOutNow, isGuest } = useUser()
   const [theme, setTheme] = useState(profile?.theme || "macera")
   const [darkMode, setDarkMode] = useState<boolean>(() => {
@@ -95,60 +98,83 @@ export function TopBar({ onOpenSettings, selectedDay, setSelectedDay }: TopbarPr
   }, [profile?.theme])
 
   return (
-    <div className="w-full flex flex-col border-b bg-[var(--panel)] sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-[var(--panel)]/80">
-      {/* Üst Satır */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <h1 className="text-lg font-semibold" style={{ color: "var(--fg)" }}>
-          YKS Duo
-        </h1>
+    <>
+      <div className="w-full flex flex-col border-b bg-[var(--panel)] sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-[var(--panel)]/80">
+        {/* Üst Satır */}
+        <div className="flex items-center justify-between px-4 py-3">
+          <h1 className="text-lg font-semibold" style={{ color: "var(--fg)" }}>
+            YKS Duo
+          </h1>
 
-        <div className="flex items-center gap-3">
-          {/* Çıkış */}
-          <Button variant="secondary" onClick={signOutNow} title="Hesaptan çık">
-            <LogOut className="w-4 h-4 mr-2" /> Çıkış
-          </Button>
-          {/* Tema seçici */}
-          <Select value={theme} onValueChange={handleThemeChange}>
-            <SelectTrigger className="w-[140px]" disabled={isGuest}>
-              <SelectValue placeholder="Tema seç" />
-            </SelectTrigger>
-            <SelectContent>
-              {themes.map(t => (
-                <SelectItem key={t.value} value={t.value}>
-                  {t.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-3">
+            {/* Çıkış */}
+            <Button variant="secondary" onClick={signOutNow} title="Hesaptan çık">
+              <LogOut className="w-4 h-4 mr-2" /> Çıkış
+            </Button>
 
-          {/* Dark/Light */}
-          <Button variant="outline" size="icon" onClick={() => setDarkMode((d) => !d)}>
-            {darkMode ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-          </Button>
+            {/* Tema seçici */}
+            <Select value={theme} onValueChange={handleThemeChange}>
+              <SelectTrigger className="w-[140px]" disabled={isGuest}>
+                <SelectValue placeholder="Tema seç" />
+              </SelectTrigger>
+              <SelectContent>
+                {themes.map(t => (
+                  <SelectItem key={t.value} value={t.value}>
+                    {t.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          {/* Ayarlar */}
-          <Button variant="outline" size="icon" onClick={!isGuest ? onOpenSettings : undefined} disabled={isGuest} title={isGuest ? "Misafir modunda ayarlar kapalı" : "Ayarlar"}>
-            <Settings className="h-5 w-5" />
-          </Button>
+            {/* Dark/Light */}
+            <Button variant="outline" size="icon" onClick={() => setDarkMode((d) => !d)}>
+              {darkMode ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+            </Button>
+
+            {/* Ayarlar */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={!isGuest ? onOpenSettings : undefined}
+              disabled={isGuest}
+              title={isGuest ? "Misafir modunda ayarlar kapalı" : "Ayarlar"}
+            >
+              <Settings className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Alt Satır: Gün Seçici */}
+        <div className="flex justify-center gap-2 px-4 pb-3">
+          {days.map((d) => (
+            <button
+              key={d.key}
+              onClick={() => setSelectedDay(d.key)}
+              className={`px-3 py-1 rounded-md text-sm transition ${
+                selectedDay === d.key
+                  ? "bg-blue-500 text-[var(--text)]"
+                  : "bg-[var(--bg)] text-[var(--fg)] hover:bg-[var(--hover)]"
+              }`}
+            >
+              {d.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Alt Satır: Gün Seçici */}
-      <div className="flex justify-center gap-2 px-4 pb-3">
-        {days.map((d) => (
-          <button
-            key={d.key}
-            onClick={() => setSelectedDay(d.key)}
-            className={`px-3 py-1 rounded-md text-sm transition ${
-              selectedDay === d.key
-                ? "bg-blue-500 text-[var(--text)]"
-                : "bg-[var(--bg)] text-[var(--fg)] hover:bg-[var(--hover)]"
-            }`}
-          >
-            {d.label}
-          </button>
-        ))}
+      {/* Geçmiş ve İstatistik Butonları */}
+      <div className="flex gap-2 px-4 pb-3">
+        <button className="btn ml-2" onClick={() => setHistoryOpen(true)}>
+          Geçmiş
+        </button>
+        <button className="btn ml-2" onClick={() => setStatsOpen(true)}>
+          İstatistik
+        </button>
       </div>
-    </div>
+
+      {/* Modallar */}
+      <StatsModal open={statsOpen} onClose={() => setStatsOpen(false)} />
+      <HistoryModal open={historyOpen} onClose={() => setHistoryOpen(false)} />
+    </>
   )
 }
